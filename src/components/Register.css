@@ -1,0 +1,18 @@
+/* Register uses Auth.css - this file should import from Auth.css or be merged */
+@import './Auth.css';
+
+/* Additional Register-specific styles */
+.register-container {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
