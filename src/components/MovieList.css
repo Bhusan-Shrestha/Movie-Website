@@ -49,12 +49,12 @@
 }
 
 .tab-btn:hover {
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .tab-btn.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 /* Search Section */
@@ -74,8 +74,8 @@
 }
 
 .search-bar:focus-within {
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 167, 225, 0.15);
 }
 
 .search-icon {
@@ -96,7 +96,7 @@
 }
 
 .search-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border: none;
   padding: 10px 24px;
@@ -153,13 +153,13 @@
 }
 
 .filter-group select:hover {
-  border-color: #667eea;
+  border-color: var(--color-primary);
 }
 
 .filter-group select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 167, 225, 0.1);
 }
 
 /* Movies Grid */
@@ -217,7 +217,7 @@
   align-items: center;
   justify-content: center;
   font-size: 48px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: #fff;
 }
 
@@ -264,7 +264,7 @@
 }
 
 .movie-card:hover .description {
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 /* Pagination */
@@ -281,7 +281,7 @@
 }
 
 .btn-pagination {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -526,7 +526,7 @@
 
 
 .view-btn:hover {
-  background: #764ba2;
+  background: var(--color-accent);
 }
 
 .pagination {
@@ -539,7 +539,7 @@
 
 .pagination button {
   padding: 8px 15px;
-  background: #667eea;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 5px;
@@ -547,7 +547,7 @@
 }
 
 .pagination button:hover:not(:disabled) {
-  background: #764ba2;
+  background: var(--color-accent);
 }
 
 .pagination button:disabled {

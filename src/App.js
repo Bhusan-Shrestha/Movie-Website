@@ -193,6 +193,14 @@ function AppContent() {
             }
           />
           <Route
+            path="/edit-movie/:id"
+            element={
+              <ModeratorRoute>
+                <CreateMovie />
+              </ModeratorRoute>
+            }
+          />
+          <Route
             path="/profile"
             element={
               <PrivateRoute>

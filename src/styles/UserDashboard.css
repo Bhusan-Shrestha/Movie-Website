@@ -9,7 +9,7 @@
   text-align: center;
   margin-bottom: 40px;
   padding: 30px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   border-radius: 15px;
   color: white;
 }
@@ -45,7 +45,7 @@
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 5px 20px rgba(0, 167, 225, 0.3);
 }
 
 .stat-icon {
@@ -55,7 +55,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   border-radius: 12px;
 }
 
@@ -92,12 +92,12 @@
 }
 
 .tab-btn:hover {
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .tab-btn.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 .dashboard-content {
@@ -141,7 +141,7 @@
 
 .btn-edit {
   padding: 10px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -164,7 +164,7 @@
   padding: 15px;
   background: #f9fafb;
   border-radius: 8px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--color-primary);
 }
 
 .profile-field label {
@@ -185,7 +185,7 @@
 .role-badge {
   display: inline-block;
   padding: 6px 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border-radius: 6px;
   font-weight: 600;
@@ -219,7 +219,7 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--color-primary);
 }
 
 .form-actions {
@@ -275,7 +275,7 @@
   background: #f9fafb;
   padding: 20px;
   border-radius: 10px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--color-primary);
   transition: all 0.3s;
 }
 
@@ -294,7 +294,7 @@
 
 .movie-title {
   margin: 0;
-  color: #667eea;
+  color: var(--color-primary);
   font-size: 18px;
   font-weight: 600;
   flex: 1;
@@ -315,7 +315,7 @@
 
 .btn-edit-small {
   padding: 6px 12px;
-  background: #667eea;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 5px;
@@ -327,7 +327,7 @@
 }
 
 .btn-edit-small:hover {
-  background: #764ba2;
+  background: var(--color-accent);
   transform: scale(1.05);
 }
 
@@ -368,7 +368,7 @@
 
 .btn-browse {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -391,7 +391,7 @@
   padding: 20px;
   background: #f9fafb;
   border-radius: 10px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--color-primary);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -452,7 +452,7 @@
 
 .btn-browse-large {
   padding: 16px 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -515,7 +515,7 @@
 
 /* Browse Section Styles */
 .browse-section h2 {
-  color: #667eea;
+  color: var(--color-primary);
   margin-bottom: 20px;
 }
 
@@ -536,12 +536,12 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--color-primary);
 }
 
 .btn-search {
   padding: 12px 30px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   color: white;
   border: none;
   border-radius: 8px;

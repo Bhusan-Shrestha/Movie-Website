@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { movieAPI } from '../services/api';
 import './CreateMovie.css';
 
 function CreateMovie() {
   const navigate = useNavigate();
+  const { id: movieId } = useParams();
+  const [searchParams] = useSearchParams();
+  const editId = movieId || searchParams.get('edit');
+  const isEditMode = !!editId;
+
   const [genres, setGenres] = useState([]);
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    language: 'Hindi',
+    language: 'English',
     runtimeMinutes: 120,
     casts: '',
     year: new Date().getFullYear(),
@@ -20,10 +25,53 @@ function CreateMovie() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(isEditMode);
 
   useEffect(() => {
     fetchGenres();
+    if (isEditMode) {
+      loadMovieForEdit();
+    }
   }, []);
+
+  const loadMovieForEdit = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`http://localhost:8080/api/movies/${editId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const movieData = await response.json();
+        // Handle nested DTO structure
+        const meta = movieData.metadata || movieData;
+        const media = movieData.media || {};
+        
+        setFormData({
+          title: meta.title || '',
+          description: meta.description || '',
+          language: meta.language || 'English',
+          runtimeMinutes: meta.runtimeMinutes || 120,
+          casts: meta.casts || '',
+          year: meta.year || new Date().getFullYear(),
+          date: meta.date || '',
+          thumbnail: null,
+          video: null,
+        });
+
+        // Load selected genres if available
+        if (movieData.genres && Array.isArray(movieData.genres)) {
+          setSelectedGenres(movieData.genres.map(g => g.id));
+        }
+      } else {
+        setError('Failed to load movie for editing');
+      }
+    } catch (err) {
+      console.error('Error loading movie:', err);
+      setError('Failed to load movie for editing');
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const fetchGenres = async () => {
     try {
@@ -68,42 +116,81 @@ function CreateMovie() {
     e.preventDefault();
     setError('');
 
-    if (!formData.title || !formData.thumbnail || !formData.video) {
+    if (!formData.title) {
+      setError('Title is required');
+      return;
+    }
+
+    // For create mode, require both thumbnail and video
+    if (!isEditMode && (!formData.thumbnail || !formData.video)) {
       setError('Title, thumbnail, and video are required');
       return;
     }
 
     setLoading(true);
     try {
-      const dataToSubmit = {
-        ...formData,
-        genreIds: selectedGenres.join(',')
-      };
-      await movieAPI.createMovie(dataToSubmit);
-      alert('Movie created successfully! It will be pending approval.');
+      let dataToSubmit;
+      
+      if (isEditMode) {
+        // In edit mode, only include fields that have values
+        // Unchanged fields (empty/null) won't be sent, so backend keeps old values
+        // Thumbnail and video are optional - only sent if user selects new files
+        dataToSubmit = {};
+        if (formData.title) dataToSubmit.title = formData.title;
+        if (formData.description) dataToSubmit.description = formData.description;
+        if (formData.language) dataToSubmit.language = formData.language;
+        if (formData.runtimeMinutes) dataToSubmit.runtimeMinutes = formData.runtimeMinutes;
+        if (formData.casts) dataToSubmit.casts = formData.casts;
+        if (formData.year) dataToSubmit.year = formData.year;
+        if (formData.date) dataToSubmit.date = formData.date;
+        // Thumbnail and video files are only included if user selected new ones
+        if (formData.thumbnail) dataToSubmit.thumbnail = formData.thumbnail;
+        if (formData.video) dataToSubmit.video = formData.video;
+        // Genres only included if any are selected
+        if (selectedGenres.length > 0) dataToSubmit.genreIds = selectedGenres.join(',');
+      } else {
+        // In create mode, include all fields
+        dataToSubmit = {
+          ...formData,
+          genreIds: selectedGenres.join(',')
+        };
+      }
+
+      if (isEditMode) {
+        await movieAPI.updateMovie(editId, dataToSubmit);
+        alert('Movie updated successfully!');
+      } else {
+        await movieAPI.createMovie(dataToSubmit);
+        alert('Movie created successfully! It will be pending approval.');
+      }
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create movie');
+      setError(err.response?.data?.message || (isEditMode ? 'Failed to update movie' : 'Failed to create movie'));
     } finally {
       setLoading(false);
     }
   };
 
+  if (initialLoading) {
+    return <div className="create-movie-container"><p>Loading movie data...</p></div>;
+  }
+
   return (
     <div className="create-movie-container">
-      <h1>Create New Movie</h1>
+      <button className="back-btn" onClick={() => navigate(-1)}>← Back</button>
+      <h1>{isEditMode ? 'Edit Movie' : 'Create New Movie'}</h1>
       {error && <div className="error-message">{error}</div>}
 
       <form onSubmit={handleSubmit} className="movie-form">
         <div className="form-group">
-          <label htmlFor="title">Title *</label>
+          <label htmlFor="title">Title {!isEditMode && '*'}</label>
           <input
             id="title"
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            required
+            required={!isEditMode}
           />
         </div>
 
@@ -214,31 +301,31 @@ function CreateMovie() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="thumbnail">Thumbnail *</label>
+          <label htmlFor="thumbnail">Thumbnail {!isEditMode && '*'}</label>
           <input
             id="thumbnail"
             type="file"
             name="thumbnail"
             onChange={handleFileChange}
             accept="image/*"
-            required
+            required={!isEditMode}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="video">Video *</label>
+          <label htmlFor="video">Video {!isEditMode && '*'}</label>
           <input
             id="video"
             type="file"
             name="video"
             onChange={handleFileChange}
             accept="video/*"
-            required
+            required={!isEditMode}
           />
         </div>
 
         <button type="submit" disabled={loading}>
-          {loading ? 'Creating...' : 'Create Movie'}
+          {loading ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Movie' : 'Create Movie')}
         </button>
       </form>
     </div>

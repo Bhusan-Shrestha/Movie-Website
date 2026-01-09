@@ -98,11 +98,17 @@ function ModeratorDashboard() {
 
   const resolveThumbnailUrl = (thumbnailPath) => {
     if (!thumbnailPath) return null;
-    // Already absolute (e.g., S3 or full URL)
-    if (/^https?:\/\//i.test(thumbnailPath)) return thumbnailPath;
-    // Ensure leading slash before host prefix
-    const normalized = thumbnailPath.startsWith('/') ? thumbnailPath : `/${thumbnailPath}`;
-    return `http://localhost:8080${normalized}`;
+    const cleanedPath = thumbnailPath.replace(/\\/g, '/');
+    if (/^https?:\/\//i.test(cleanedPath)) return cleanedPath;
+    const normalized = cleanedPath.startsWith('/') ? cleanedPath : `/${cleanedPath}`;
+    return `http://localhost:8080/api${normalized}`;
+  };
+
+  const formatRuntime = (minutes) => {
+    if (!minutes || minutes <= 0) return null;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `${h} hour ${m} minute`;
   };
 
   if (loading) {
@@ -194,8 +200,9 @@ function ModeratorDashboard() {
             <div className="movies-grid">
               {(activeTab === 'all' ? allMovies : myMovies)
                 .filter(movie => {
-                  if (activeTab === 'pending') return movie.status === 'PENDING';
-                  if (activeTab === 'approved') return movie.status === 'APPROVED';
+                  const status = movie.statusInfo?.status || movie.status;
+                  if (activeTab === 'pending') return status === 'PENDING';
+                  if (activeTab === 'approved') return status === 'APPROVED';
                   return true;
                 })
                 .map((movie) => {
@@ -206,16 +213,21 @@ function ModeratorDashboard() {
                   const thumbnailPath = movie.media?.thumbnailPath || movie.thumbnail || movie.metadata?.thumbnailPath || movie.metadata?.thumbnail;
                   const thumbnailUrl = resolveThumbnailUrl(thumbnailPath);
 
+                  const handleCardClick = () => {
+                    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                    navigate(`/movie/${slug}`);
+                  };
+                  const currentStatus = movie.statusInfo?.status || movie.status;
                   return (
-                    <div key={movie.id} className="movie-card">
+                    <div key={movie.id} className="movie-card" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
                       <div className="movie-thumbnail">
                         {thumbnailUrl ? (
                           <img src={thumbnailUrl} alt={title} />
                         ) : (
                           <div className="no-thumbnail">🎬</div>
                         )}
-                        <span className={`status-badge ${getStatusBadgeClass(movie.statusInfo?.status || movie.status)}`}>
-                          {movie.statusInfo?.status || movie.status}
+                        <span className={`status-badge ${getStatusBadgeClass(currentStatus)}`}>
+                          {currentStatus}
                         </span>
                       </div>
                       <div className="movie-info">
@@ -225,29 +237,24 @@ function ModeratorDashboard() {
                         </p>
                         <div className="movie-meta">
                           <span>📅 {year}</span>
-                          <span>⏱️ {runtime ? `${runtime} mins` : 'N/A'}</span>
+                          <span>⏱️ {runtime ? `${formatRuntime(runtime)}` : 'N/A'}</span>
                         </div>
                         <div className="movie-actions">
                           <button
-                            className="btn-view"
-                            onClick={() => {
-                              const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                              navigate(`/movie/${slug}`);
+                            className="btn-edit"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/edit-movie/${movie.id}`);
                             }}
                           >
-                            👁️ View
+                            ✏️ Edit
                           </button>
-                          {movie.status === 'PENDING' && (
-                            <button
-                              className="btn-edit"
-                              onClick={() => navigate(`/edit-movie/${movie.id}`)}
-                            >
-                              ✏️ Edit
-                            </button>
-                          )}
                           <button
                             className="btn-delete"
-                            onClick={() => handleDeleteMovie(movie.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteMovie(movie.id);
+                            }}
                           >
                             🗑️ Delete
                           </button>

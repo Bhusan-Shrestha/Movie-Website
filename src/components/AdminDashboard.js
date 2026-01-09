@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/AdminDashboard.css';
 
 function AdminDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('approvals');
   const [pendingMovies, setPendingMovies] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
@@ -23,6 +25,7 @@ function AdminDashboard() {
 
   const loadDashboardData = async () => {
     setLoading(true);
+    let pendingCount = 0;
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
 
@@ -31,8 +34,10 @@ function AdminDashboard() {
       if (moviesRes.ok) {
         const response = await moviesRes.json();
         const movies = response.content || response;
-        setPendingMovies(Array.isArray(movies) ? movies : []);
-        setStats(prev => ({ ...prev, pendingApprovals: movies.length }));
+        const list = Array.isArray(movies) ? movies : [];
+        setPendingMovies(list);
+        pendingCount = list.length;
+        setStats(prev => ({ ...prev, pendingApprovals: pendingCount }));
       }
 
       // Fetch all users
@@ -49,6 +54,18 @@ function AdminDashboard() {
         }));
         setAllUsers(mappedUsers);
         setStats(prev => ({ ...prev, totalUsers: mappedUsers.length }));
+      }
+
+      // Fetch approved movies count to compute Total Movies (approved + pending)
+      const approvedRes = await fetch('http://localhost:8080/api/movies/all?page=0&size=1', { headers });
+      if (approvedRes.ok) {
+        const approvedPage = await approvedRes.json();
+        const approvedTotal = typeof approvedPage.totalElements === 'number'
+          ? approvedPage.totalElements
+          : (Array.isArray(approvedPage) ? approvedPage.length : (approvedPage.content?.length || 0));
+        setStats(prev => ({ ...prev, totalMovies: approvedTotal + pendingCount }));
+      } else {
+        setStats(prev => ({ ...prev, totalMovies: pendingCount }));
       }
     } catch (error) {
       setMessage('Failed to load dashboard data');
@@ -94,11 +111,33 @@ function AdminDashboard() {
     }
   };
 
+  const resolveThumbnailUrl = (thumbnailPath) => {
+    if (!thumbnailPath) return null;
+    const cleanedPath = thumbnailPath.replace(/\\/g, '/');
+    if (/^https?:\/\//i.test(cleanedPath)) return cleanedPath;
+    const normalized = cleanedPath.startsWith('/') ? cleanedPath : `/${cleanedPath}`;
+    return `http://localhost:8080/api${normalized}`;
+  };
+
+  const resolveVideoUrl = (videoPath) => {
+    if (!videoPath) return null;
+    if (/^https?:\/\//i.test(videoPath)) return videoPath;
+    const normalized = videoPath.startsWith('/') ? videoPath : `/${videoPath}`;
+    return `http://localhost:8080${normalized}`;
+  };
+
+  const formatRuntime = (minutes) => {
+    if (!minutes || minutes <= 0) return null;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `${h} hour ${m} minute`;
+  };
+
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
         <h1>⚙️ Admin Dashboard</h1>
-        <p>Manage content, users, and platform settings</p>
+        <p>Manage content and users</p>
       </div>
 
       {message && (
@@ -153,12 +192,10 @@ function AdminDashboard() {
         >
           👥 Users Management
         </button>
-        <button
-          className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('settings')}
-        >
-          ⚙️ Platform Settings
+        <button className="tab-btn btn-upload" onClick={() => navigate('/create')}>
+          📤 Upload New Movie
         </button>
+
       </div>
 
       {/* Content */}
@@ -182,30 +219,60 @@ function AdminDashboard() {
                   const createdAt = movie.auditInfo?.createdAt || movie.createdAt || movie.uploadedAt;
                   const uploader = movie.auditInfo?.uploadedBy || movie.uploadedBy?.username || movie.uploadedBy || 'N/A';
                   const runtime = movie.metadata?.runtimeMinutes || movie.runtimeMinutes || movie.duration || 'N/A';
+                  const thumbnailPath = movie.media?.thumbnailPath || movie.thumbnail || movie.metadata?.thumbnailPath || movie.metadata?.thumbnail;
+                  const videoPath = movie.media?.videoPath || movie.videoPath || movie.video || movie.media?.video;
+                  const thumbnailUrl = resolveThumbnailUrl(thumbnailPath);
+                  const videoUrl = resolveVideoUrl(videoPath);
                   return (
                     <div key={movie.id} className="movie-approval-card">
+                      <div className="movie-media">
+                        {thumbnailUrl ? (
+                          <img
+                            src={thumbnailUrl}
+                            alt={title}
+                            onClick={() => { if (videoUrl) window.open(videoUrl, '_blank'); }}
+                            style={{ cursor: videoUrl ? 'pointer' : 'default' }}
+                          />
+                        ) : (
+                          <div className="no-thumbnail">🎬</div>
+                        )}
+                      </div>
                       <div className="movie-info">
                         <h3>{title}</h3>
                         <p className="movie-description">{description}</p>
                         <div className="movie-meta">
                           <span>📅 {createdAt ? new Date(createdAt).toLocaleDateString() : 'N/A'}</span>
                           <span>👤 Uploaded by: {typeof uploader === 'string' ? uploader : 'N/A'}</span>
-                          <span>⏱️ {runtime !== 'N/A' ? `${runtime} mins` : 'N/A'}</span>
+                          <span>⏱️ {runtime !== 'N/A' ? `${formatRuntime(runtime)}` : 'N/A'}</span>
                         </div>
-                      </div>
-                      <div className="approval-actions">
-                        <button
-                          className="btn-approve"
-                          onClick={() => approveMovie(movie.id)}
-                        >
-                          ✓ Approve
-                        </button>
-                        <button
-                          className="btn-reject"
-                          onClick={() => rejectMovie(movie.id)}
-                        >
-                          ✗ Reject
-                        </button>
+                        <div className="approval-actions">
+                          {videoUrl && (
+                            <button
+                              className="btn-play"
+                              onClick={() => window.open(videoUrl, '_blank')}
+                            >
+                              ▶ Play
+                            </button>
+                          )}
+                          <button
+                            className="btn-edit"
+                            onClick={() => { window.location.href = `/create?edit=${movie.id}`; }}
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            className="btn-approve"
+                            onClick={() => approveMovie(movie.id)}
+                          >
+                            ✓ Approve
+                          </button>
+                          <button
+                            className="btn-reject"
+                            onClick={() => rejectMovie(movie.id)}
+                          >
+                            ✗ Reject
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -230,7 +297,6 @@ function AdminDashboard() {
                       <th>Email</th>
                       <th>Role</th>
                       <th>Joined</th>
-                      <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -244,7 +310,6 @@ function AdminDashboard() {
                           </span>
                         </td>
                         <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</td>
-                        <td><span className="status-badge active">Active</span></td>
                       </tr>
                     ))}
                   </tbody>
@@ -254,62 +319,7 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Settings Tab */}
-        {activeTab === 'settings' && (
-          <div className="settings-section">
-            <h2>⚙️ Platform Settings</h2>
-            <div className="settings-grid">
-              <div className="setting-card">
-                <h3>🎥 Content Settings</h3>
-                <div className="setting-item">
-                  <label>
-                    <input type="checkbox" defaultChecked /> Allow user uploads
-                  </label>
-                </div>
-                <div className="setting-item">
-                  <label>
-                    <input type="checkbox" defaultChecked /> Require admin approval
-                  </label>
-                </div>
-                <div className="setting-item">
-                  <label>
-                    <input type="checkbox" defaultChecked /> Enable reviews
-                  </label>
-                </div>
-              </div>
 
-              <div className="setting-card">
-                <h3>🛡️ Security Settings</h3>
-                <div className="setting-item">
-                  <label>
-                    <input type="checkbox" defaultChecked /> Two-factor authentication
-                  </label>
-                </div>
-                <div className="setting-item">
-                  <label>
-                    <input type="checkbox" /> Rate limiting
-                  </label>
-                </div>
-              </div>
-
-              <div className="setting-card">
-                <h3>📧 Email Notifications</h3>
-                <div className="setting-item">
-                  <label>
-                    <input type="checkbox" defaultChecked /> Send approval notifications
-                  </label>
-                </div>
-                <div className="setting-item">
-                  <label>
-                    <input type="checkbox" defaultChecked /> Send review notifications
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <button className="btn-save-settings">💾 Save Settings</button>
-          </div>
-        )}
       </div>
     </div>
   );

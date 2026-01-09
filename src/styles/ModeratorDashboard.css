@@ -9,7 +9,7 @@
   text-align: center;
   margin-bottom: 40px;
   padding: 30px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   border-radius: 15px;
   color: white;
 }
@@ -45,11 +45,11 @@
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 5px 20px rgba(0, 167, 225, 0.3);
 }
 
 .stat-total .stat-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
 }
 
 .stat-approved .stat-icon {
@@ -107,17 +107,17 @@
 }
 
 .tab-btn:hover {
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .tab-btn.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 .tab-btn.btn-upload {
   margin-left: auto;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border-radius: 8px;
   border-bottom: none;
@@ -202,15 +202,16 @@
 .movie-thumbnail {
   position: relative;
   width: 100%;
-  height: 200px;
+  height: 340px;
+  aspect-ratio: 2 / 3;
   overflow: hidden;
-  background: #e5e7eb;
+  background: #0b0b0b;
 }
 
 .movie-thumbnail img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .no-thumbnail {
