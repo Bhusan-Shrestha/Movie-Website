@@ -111,11 +111,11 @@ function MovieList({ userRole, isAuthenticated }) {
             <p className="year">
               📅 {movie.metadata?.year || new Date(movie.createdAt).getFullYear()}
               {movie.metadata?.runtimeMinutes ? (
-                <span className="runtime"> • ⏱ {formatRuntime(movie.metadata.runtimeMinutes)}</span>
+                <span className="runtime"> • ⏱️ {formatRuntime(movie.metadata.runtimeMinutes)}</span>
               ) : null}
             </p>
             <p className="description">
-              {(movie.metadata?.description || movie.description)?.substring(0, 80)}...
+              {(movie.metadata?.description || movie.description)?.substring(0, 150)}...
             </p>
           </div>
         </div>

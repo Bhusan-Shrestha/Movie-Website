@@ -35,15 +35,15 @@ function Profile() {
       const profileRes = await fetch('http://localhost:8080/api/user/profile', { headers });
       if (profileRes.ok) {
         const profile = await profileRes.json();
-        // Map common field variants to ensure display even if backend keys differ
+        // Backend returns nested structure: { id, metadata: { name, username, email, phone, address, role }, auditInfo }
         const mappedProfile = {
           id: profile.id,
-          name: profile.name || profile.fullName || '',
-          username: profile.username || profile.userName || '',
-          email: profile.email || profile.mail || '',
-          phoneNo: profile.phoneNo || profile.phone || '',
-          address: profile.address || '',
-          role: profile.role || profile.userRole || '',
+          name: profile.metadata?.name || profile.name || '',
+          username: profile.metadata?.username || profile.username || '',
+          email: profile.metadata?.email || profile.email || '',
+          phoneNo: profile.metadata?.phone || profile.phoneNo || profile.phone || '',
+          address: profile.metadata?.address || profile.address || '',
+          role: profile.metadata?.role || profile.role || '',
         };
         setUserProfile(mappedProfile);
         setFormData({
@@ -171,7 +171,19 @@ function Profile() {
               <label>ADDRESS:</label>
               <p>{userProfile?.address || '-'}</p>
             </div>
-            {/* Role section removed for user view */}
+            {(userProfile?.role === 'ADMIN' || userProfile?.role === 'MODERATOR') && (
+              <div className="profile-field">
+                <label>ROLE:</label>
+                <div>
+                  {userProfile?.role ? (
+                    <span className="role-badge">{userProfile.role}</span>
+                  ) : (
+                    <p style={{ margin: 0 }}>-</p>
+                  )}
+                </div>
+              </div>
+            )}
+            
           </div>
         ) : (
           <form onSubmit={handleUpdateProfile} className="profile-form">

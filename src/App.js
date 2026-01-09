@@ -139,11 +139,11 @@ function AppContent() {
                 📊 My Dashboard
               </Link>
             )}
-            {isLoggedIn && (user?.role === 'MODERATOR' || user?.role === 'ADMIN') && (
+            {/* {isLoggedIn && (user?.role === 'MODERATOR' || user?.role === 'ADMIN') && (
               <Link to="/create" className="nav-link nav-link-upload" onClick={() => setMobileMenuOpen(false)}>
                 📤 Upload Movie
               </Link>
-            )}
+            )} */}
             {isLoggedIn && user?.role === 'ADMIN' && (
               <Link to="/admin" className="nav-link nav-link-admin" onClick={() => setMobileMenuOpen(false)}>
                 ⚙️ Admin Panel

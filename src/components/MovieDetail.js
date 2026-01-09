@@ -185,6 +185,16 @@ function MovieDetail() {
             {token ? (
               <form onSubmit={handleAddReview} className="review-form">
                 <div className="form-group">
+                  <label htmlFor="rating">Rating</label>
+                  <select id="rating" value={rating} onChange={(e) => setRating(e.target.value)}>
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="3">3 - Good</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="5">5 - Excellent</option>
+                  </select>
+                </div>
+                <div className="form-group">
                   <label htmlFor="reviewText">Review</label>
                   <textarea
                     id="reviewText"
@@ -194,16 +204,6 @@ function MovieDetail() {
                     rows="4"
                     required
                   />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="rating">Rating</label>
-                  <select id="rating" value={rating} onChange={(e) => setRating(e.target.value)}>
-                    <option value="1">1 - Poor</option>
-                    <option value="2">2 - Fair</option>
-                    <option value="3">3 - Good</option>
-                    <option value="4">4 - Very Good</option>
-                    <option value="5">5 - Excellent</option>
-                  </select>
                 </div>
                 <button type="submit" disabled={submittingReview}>
                   {submittingReview ? 'Submitting...' : 'Submit Review'}

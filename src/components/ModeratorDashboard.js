@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/ModeratorDashboard.css';
 
 function ModeratorDashboard() {
+  const [allMovies, setAllMovies] = useState([]);
   const [myMovies, setMyMovies] = useState([]);
   const [stats, setStats] = useState({
     totalUploads: 0,
@@ -25,25 +26,37 @@ function ModeratorDashboard() {
     setLoading(true);
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const currentUsername = (storedUser?.metadata?.username || storedUser?.username || '').toLowerCase();
+      const currentUserId = storedUser?.metadata?.id || storedUser?.id;
 
-      // Fetch all movies (backend doesn't have my-movies endpoint)
-      const moviesRes = await fetch('http://localhost:8080/api/movies/all', { headers });
-      if (moviesRes.ok) {
-        const response = await moviesRes.json();
-        const moviesList = Array.isArray(response) ? response : (response.content || []);
-        setMyMovies(moviesList);
-        
-        // Calculate stats (Note: showing all approved movies since backend doesn't filter by moderator)
-        const approved = moviesList.filter(m => m.status === 'APPROVED').length;
-        const pending = moviesList.filter(m => m.status === 'PENDING').length;
-        const rejected = moviesList.filter(m => m.status === 'REJECTED').length;
-        
-        setStats({
-          totalUploads: moviesList.length,
-          approved,
-          pending,
-          rejected
-        });
+      if (!currentUsername && !currentUserId) {
+        setMessage('Could not determine your user account. Please log in again.');
+        setMyMovies([]);
+        setStats({ totalUploads: 0, approved: 0, pending: 0, rejected: 0 });
+        return;
+      }
+
+      // Fetch my movies (any status)
+      const myRes = await fetch('http://localhost:8080/api/movies/my?page=0&size=500&sortBy=createdAt&direction=DESC', { headers });
+      if (myRes.ok) {
+        const myPage = await myRes.json();
+        const mine = Array.isArray(myPage) ? myPage : (myPage.content || []);
+        setMyMovies(mine);
+
+        const approved = mine.filter(m => (m.statusInfo?.status || m.status) === 'APPROVED').length;
+        const pending = mine.filter(m => (m.statusInfo?.status || m.status) === 'PENDING').length;
+        const rejected = mine.filter(m => (m.statusInfo?.status || m.status) === 'REJECTED').length;
+
+        setStats({ totalUploads: mine.length, approved, pending, rejected });
+      }
+
+      // Fetch all approved movies for the "All Movies" tab
+      const allRes = await fetch('http://localhost:8080/api/movies/all?page=0&size=500&sortBy=createdAt&direction=DESC', { headers });
+      if (allRes.ok) {
+        const allPage = await allRes.json();
+        const allList = Array.isArray(allPage) ? allPage : (allPage.content || []);
+        setAllMovies(allList);
       }
     } catch (error) {
       console.error('Error loading moderator data:', error);
@@ -83,6 +96,15 @@ function ModeratorDashboard() {
     }
   };
 
+  const resolveThumbnailUrl = (thumbnailPath) => {
+    if (!thumbnailPath) return null;
+    // Already absolute (e.g., S3 or full URL)
+    if (/^https?:\/\//i.test(thumbnailPath)) return thumbnailPath;
+    // Ensure leading slash before host prefix
+    const normalized = thumbnailPath.startsWith('/') ? thumbnailPath : `/${thumbnailPath}`;
+    return `http://localhost:8080${normalized}`;
+  };
+
   if (loading) {
     return <div className="dashboard-loading">Loading your dashboard...</div>;
   }
@@ -90,7 +112,7 @@ function ModeratorDashboard() {
   return (
     <div className="moderator-dashboard">
       <div className="dashboard-header">
-        <h1>🎬 Content Creator Dashboard</h1>
+        <h1>Moderator Dashboard</h1>
         <p>Manage your uploaded movies and track their status</p>
       </div>
 
@@ -127,10 +149,16 @@ function ModeratorDashboard() {
 
       <div className="dashboard-tabs">
         <button
+          className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          🗂️ All Movies
+        </button>
+        <button
           className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          📋 All Movies
+          📋 My Movies
         </button>
         <button
           className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
@@ -155,71 +183,79 @@ function ModeratorDashboard() {
         )}
 
         <div className="movies-section">
-          {myMovies.length === 0 ? (
+          {(activeTab !== 'all' && myMovies.length === 0) ? (
             <div className="empty-state">
-              <p>🎬 You haven't uploaded any movies yet.</p>
+              <p>You haven't uploaded any movies yet.</p>
               <button className="btn-upload-large" onClick={() => navigate('/create')}>
                 Upload Your First Movie
               </button>
             </div>
           ) : (
             <div className="movies-grid">
-              {myMovies
+              {(activeTab === 'all' ? allMovies : myMovies)
                 .filter(movie => {
                   if (activeTab === 'pending') return movie.status === 'PENDING';
                   if (activeTab === 'approved') return movie.status === 'APPROVED';
                   return true;
                 })
-                .map((movie) => (
-                  <div key={movie.id} className="movie-card">
-                    <div className="movie-thumbnail">
-                      {movie.thumbnail ? (
-                        <img src={`http://localhost:8080${movie.thumbnail}`} alt={movie.title} />
-                      ) : (
-                        <div className="no-thumbnail">🎬</div>
-                      )}
-                      <span className={`status-badge ${getStatusBadgeClass(movie.status)}`}>
-                        {movie.status}
-                      </span>
-                    </div>
-                    <div className="movie-info">
-                      <h3>{movie.title}</h3>
-                      <p className="movie-description">
-                        {movie.description?.substring(0, 100)}...
-                      </p>
-                      <div className="movie-meta">
-                        <span>📅 {movie.releasedYear || 'N/A'}</span>
-                        <span>⭐ {movie.averageRating?.toFixed(1) || '0.0'}</span>
-                      </div>
-                      <div className="movie-actions">
-                        <button
-                          className="btn-view"
-                          onClick={() => {
-                            const title = movie.metadata?.title || movie.title || 'untitled';
-                            const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                            navigate(`/movie/${slug}`);
-                          }}
-                        >
-                          👁️ View
-                        </button>
-                        {movie.status === 'PENDING' && (
-                          <button
-                            className="btn-edit"
-                            onClick={() => navigate(`/edit-movie/${movie.id}`)}
-                          >
-                            ✏️ Edit
-                          </button>
+                .map((movie) => {
+                  const title = movie.metadata?.title || movie.title || 'Untitled';
+                  const description = movie.metadata?.description || movie.description || '';
+                  const year = movie.metadata?.year ?? movie.releasedYear ?? movie.year ?? 'N/A';
+                  const runtime = movie.metadata?.runtimeMinutes ?? movie.runtimeMinutes ?? movie.duration;
+                  const thumbnailPath = movie.media?.thumbnailPath || movie.thumbnail || movie.metadata?.thumbnailPath || movie.metadata?.thumbnail;
+                  const thumbnailUrl = resolveThumbnailUrl(thumbnailPath);
+
+                  return (
+                    <div key={movie.id} className="movie-card">
+                      <div className="movie-thumbnail">
+                        {thumbnailUrl ? (
+                          <img src={thumbnailUrl} alt={title} />
+                        ) : (
+                          <div className="no-thumbnail">🎬</div>
                         )}
-                        <button
-                          className="btn-delete"
-                          onClick={() => handleDeleteMovie(movie.id)}
-                        >
-                          🗑️ Delete
-                        </button>
+                        <span className={`status-badge ${getStatusBadgeClass(movie.statusInfo?.status || movie.status)}`}>
+                          {movie.statusInfo?.status || movie.status}
+                        </span>
+                      </div>
+                      <div className="movie-info">
+                        <h3>{title}</h3>
+                        <p className="movie-description">
+                          {description ? `${description.substring(0, 100)}...` : 'No description provided.'}
+                        </p>
+                        <div className="movie-meta">
+                          <span>📅 {year}</span>
+                          <span>⏱️ {runtime ? `${runtime} mins` : 'N/A'}</span>
+                        </div>
+                        <div className="movie-actions">
+                          <button
+                            className="btn-view"
+                            onClick={() => {
+                              const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                              navigate(`/movie/${slug}`);
+                            }}
+                          >
+                            👁️ View
+                          </button>
+                          {movie.status === 'PENDING' && (
+                            <button
+                              className="btn-edit"
+                              onClick={() => navigate(`/edit-movie/${movie.id}`)}
+                            >
+                              ✏️ Edit
+                            </button>
+                          )}
+                          <button
+                            className="btn-delete"
+                            onClick={() => handleDeleteMovie(movie.id)}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           )}
         </div>

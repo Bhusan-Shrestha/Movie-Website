@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { movieAPI } from '../services/api';
 import './CreateMovie.css';
 
 function CreateMovie() {
   const navigate = useNavigate();
+  const [genres, setGenres] = useState([]);
+  const [selectedGenres, setSelectedGenres] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     language: 'Hindi',
     runtimeMinutes: 120,
     casts: '',
-    genreIds: '',
     year: new Date().getFullYear(),
     date: '',
     thumbnail: null,
@@ -19,6 +20,33 @@ function CreateMovie() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchGenres();
+  }, []);
+
+  const fetchGenres = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:8080/api/genres', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setGenres(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching genres:', error);
+    }
+  };
+
+  const handleGenreChange = (genreId) => {
+    setSelectedGenres(prev => 
+      prev.includes(genreId) 
+        ? prev.filter(id => id !== genreId)
+        : [...prev, genreId]
+    );
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,7 +75,11 @@ function CreateMovie() {
 
     setLoading(true);
     try {
-      await movieAPI.createMovie(formData);
+      const dataToSubmit = {
+        ...formData,
+        genreIds: selectedGenres.join(',')
+      };
+      await movieAPI.createMovie(dataToSubmit);
       alert('Movie created successfully! It will be pending approval.');
       navigate('/');
     } catch (err) {
@@ -140,15 +172,23 @@ function CreateMovie() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="genreIds">Genre IDs</label>
-          <input
-            id="genreIds"
-            type="text"
-            name="genreIds"
-            value={formData.genreIds}
-            onChange={handleChange}
-            placeholder="1,2,3"
-          />
+          <label>Genres</label>
+          <div className="genre-checkboxes">
+            {genres.length === 0 ? (
+              <p>Loading genres...</p>
+            ) : (
+              genres.map((genre) => (
+                <label key={genre.id} className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={selectedGenres.includes(genre.id)}
+                    onChange={() => handleGenreChange(genre.id)}
+                  />
+                  <span>{genre.name}</span>
+                </label>
+              ))
+            )}
+          </div>
         </div>
 
         <div className="form-group">

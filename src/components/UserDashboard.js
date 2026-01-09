@@ -36,18 +36,28 @@ function UserDashboard() {
       const profileRes = await fetch('http://localhost:8080/api/user/profile', { headers });
       if (profileRes.ok) {
         const profile = await profileRes.json();
-        setUserProfile(profile);
+        // Backend returns nested structure: { id, metadata: { name, username, email, phone, address, role }, auditInfo }
+        const mappedProfile = {
+          id: profile.id,
+          name: profile.metadata?.name || profile.name || '',
+          username: profile.metadata?.username || profile.username || '',
+          email: profile.metadata?.email || profile.email || '',
+          phoneNo: profile.metadata?.phone || profile.phoneNo || profile.phone || '',
+          address: profile.metadata?.address || profile.address || '',
+          role: profile.metadata?.role || profile.role || '',
+        };
+        setUserProfile(mappedProfile);
         setFormData({
-          name: profile.name || '',
-          email: profile.email || '',
-          phone: profile.phoneNo || '',
-          address: profile.address || '',
+          name: mappedProfile.name || '',
+          email: mappedProfile.email || '',
+          phone: mappedProfile.phoneNo || '',
+          address: mappedProfile.address || '',
           password: ''
         });
 
         // Fetch user's reviews using the userId from profile
-        if (profile.id) {
-          const reviewsRes = await fetch(`http://localhost:8080/api/reviews/user/${profile.id}`, { headers });
+        if (mappedProfile.id) {
+          const reviewsRes = await fetch(`http://localhost:8080/api/reviews/user/${mappedProfile.id}`, { headers });
           if (reviewsRes.ok) {
             const reviews = await reviewsRes.json();
             setUserReviews(Array.isArray(reviews) ? reviews : []);

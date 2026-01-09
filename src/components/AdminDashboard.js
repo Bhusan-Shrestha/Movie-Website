@@ -39,8 +39,16 @@ function AdminDashboard() {
       const usersRes = await fetch('http://localhost:8080/api/admin/users', { headers });
       if (usersRes.ok) {
         const users = await usersRes.json();
-        setAllUsers(users);
-        setStats(prev => ({ ...prev, totalUsers: users.length }));
+        // Map users to handle nested metadata structure
+        const mappedUsers = users.map(user => ({
+          id: user.id,
+          username: user.metadata?.username || user.username || 'N/A',
+          email: user.metadata?.email || user.email || 'N/A',
+          role: user.metadata?.role || user.role || 'VIEWER',
+          createdAt: user.auditInfo?.createdAt || user.createdAt || null,
+        }));
+        setAllUsers(mappedUsers);
+        setStats(prev => ({ ...prev, totalUsers: mappedUsers.length }));
       }
     } catch (error) {
       setMessage('Failed to load dashboard data');
@@ -168,33 +176,40 @@ function AdminDashboard() {
               </div>
             ) : (
               <div className="movies-list">
-                {pendingMovies.map((movie) => (
-                  <div key={movie.id} className="movie-approval-card">
-                    <div className="movie-info">
-                      <h3>{movie.title}</h3>
-                      <p className="movie-description">{movie.description}</p>
-                      <div className="movie-meta">
-                        <span>📅 {new Date(movie.uploadedAt).toLocaleDateString()}</span>
-                        <span>👤 Uploaded by: {movie.uploadedBy}</span>
-                        <span>⏱️ {movie.duration} mins</span>
+                {pendingMovies.map((movie) => {
+                  const title = movie.metadata?.title || movie.title || 'Untitled';
+                  const description = movie.metadata?.description || movie.description || '';
+                  const createdAt = movie.auditInfo?.createdAt || movie.createdAt || movie.uploadedAt;
+                  const uploader = movie.auditInfo?.uploadedBy || movie.uploadedBy?.username || movie.uploadedBy || 'N/A';
+                  const runtime = movie.metadata?.runtimeMinutes || movie.runtimeMinutes || movie.duration || 'N/A';
+                  return (
+                    <div key={movie.id} className="movie-approval-card">
+                      <div className="movie-info">
+                        <h3>{title}</h3>
+                        <p className="movie-description">{description}</p>
+                        <div className="movie-meta">
+                          <span>📅 {createdAt ? new Date(createdAt).toLocaleDateString() : 'N/A'}</span>
+                          <span>👤 Uploaded by: {typeof uploader === 'string' ? uploader : 'N/A'}</span>
+                          <span>⏱️ {runtime !== 'N/A' ? `${runtime} mins` : 'N/A'}</span>
+                        </div>
+                      </div>
+                      <div className="approval-actions">
+                        <button
+                          className="btn-approve"
+                          onClick={() => approveMovie(movie.id)}
+                        >
+                          ✓ Approve
+                        </button>
+                        <button
+                          className="btn-reject"
+                          onClick={() => rejectMovie(movie.id)}
+                        >
+                          ✗ Reject
+                        </button>
                       </div>
                     </div>
-                    <div className="approval-actions">
-                      <button
-                        className="btn-approve"
-                        onClick={() => approveMovie(movie.id)}
-                      >
-                        ✓ Approve
-                      </button>
-                      <button
-                        className="btn-reject"
-                        onClick={() => rejectMovie(movie.id)}
-                      >
-                        ✗ Reject
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
