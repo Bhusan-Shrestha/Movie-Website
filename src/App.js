@@ -12,7 +12,7 @@ import './App.css';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('authToken');
-  return token ? children : <Navigate to="/login" />;
+  return token ? children : <Navigate to="/login" replace />;
 }
 
 function ModeratorRoute({ children }) {
@@ -21,7 +21,7 @@ function ModeratorRoute({ children }) {
   return token && (user.role === 'MODERATOR' || user.role === 'ADMIN') ? (
     children
   ) : (
-    <Navigate to="/" />
+    <Navigate to="/" replace />
   );
 }
 
@@ -31,7 +31,7 @@ function AdminRoute({ children }) {
   return token && user.role === 'ADMIN' ? (
     children
   ) : (
-    <Navigate to="/" />
+    <Navigate to="/" replace />
   );
 }
 
@@ -40,7 +40,6 @@ function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  // eslint-disable-next-line no-unused-vars
   const location = useLocation();
 
   const loadUserData = () => {
@@ -77,6 +76,29 @@ function AppContent() {
     };
   }, []);
 
+  // Prevent back navigation from protected routes (except profile where back button should work)
+  useEffect(() => {
+    const routesToProtect = ['/admin', '/moderator', '/create', '/edit-movie'];
+    const isProtectedRoute = routesToProtect.some(route => location.pathname.startsWith(route));
+    
+    if (isProtectedRoute && isLoggedIn) {
+      // Push a new state so there's something to go back to
+      window.history.pushState(null, '', window.location.href);
+      
+      // Handle back button
+      const handlePopState = () => {
+        // Prevent going back by pushing forward again
+        window.history.pushState(null, '', window.location.href);
+      };
+      
+      window.addEventListener('popstate', handlePopState);
+      
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [location.pathname, isLoggedIn]);
+
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
       localStorage.removeItem('authToken');
@@ -84,7 +106,7 @@ function AppContent() {
       setIsLoggedIn(false);
       setUser(null);
       setMobileMenuOpen(false);
-      navigate('/login');
+      navigate('/login', { replace: true });
     }
   };
 
@@ -139,11 +161,6 @@ function AppContent() {
                 📊 My Dashboard
               </Link>
             )}
-            {/* {isLoggedIn && (user?.role === 'MODERATOR' || user?.role === 'ADMIN') && (
-              <Link to="/create" className="nav-link nav-link-upload" onClick={() => setMobileMenuOpen(false)}>
-                📤 Upload Movie
-              </Link>
-            )} */}
             {isLoggedIn && user?.role === 'ADMIN' && (
               <Link to="/admin" className="nav-link nav-link-admin" onClick={() => setMobileMenuOpen(false)}>
                 ⚙️ Admin Panel
@@ -151,7 +168,7 @@ function AppContent() {
             )}
             {!isLoggedIn ? (
               <>
-                <Link to="/login" className="nav-link">🔓 Login</Link>
+                <Link to="/login" className="nav-link nav-link-login">🔓 Login</Link>
                 <Link to="/register" className="nav-link nav-link-register">✍️ Register</Link>
               </>
             ) : (

@@ -67,6 +67,12 @@
   border-bottom: 2px solid #e5e7eb;
 }
 
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .profile-header h1 {
   margin: 0;
   color: #1f2937;
@@ -75,18 +81,36 @@
 
 .btn-edit {
   padding: 10px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  transition: transform 0.2s;
+  transition: all 0.3s;
 }
 
 .btn-edit:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-delete-account {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #f43f5e 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-delete-account:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.35);
 }
 
 .profile-loading {
@@ -107,6 +131,12 @@
   background: #d1fae5;
   color: #065f46;
   border: 1px solid #6ee7b7;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecdd3;
 }
 
 /* Profile View */
@@ -144,7 +174,7 @@
 .role-badge {
   display: inline-block;
   padding: 6px 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border-radius: 6px;
   font-weight: 600;
@@ -327,17 +357,18 @@
 
 .btn-browse {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.2s;
+  transition: all 0.3s;
 }
 
 .btn-browse:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Responsive */
@@ -378,4 +409,24 @@
   .tab-btn {
     white-space: nowrap;
   }
+}
+
+/* Role Text Styling */
+.role-text {
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-text.role-admin {
+  color: #ff0000;
+}
+
+.role-text.role-moderator {
+  color: #3b82f6;
+}
+
+.role-text.role-viewer {
+  color: #10b981;
 }

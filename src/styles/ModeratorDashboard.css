@@ -125,6 +125,8 @@
 
 .tab-btn.btn-upload:hover {
   transform: scale(1.05);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .dashboard-content {
@@ -166,7 +168,7 @@
 
 .btn-upload-large {
   padding: 16px 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -289,6 +291,23 @@
   flex-wrap: wrap;
 }
 
+.rejected-actions-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.rejected-bottom-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn-full-width {
+  width: 100%;
+}
+
 .movie-actions button {
   flex: 1;
   padding: 8px 12px;
@@ -305,19 +324,40 @@
   transform: scale(1.05);
 }
 
+.movie-actions .btn-edit {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%) !important;
+  color: white !important;
+}
+
 .btn-view {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
 }
 
 .btn-edit {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
 }
 
 .btn-delete {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
+}
+
+.btn-resubmit {
+  background: linear-gradient(135deg, var(--color-success) 0%, #2ea86c 100%);
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-resubmit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(64, 219, 141, 0.4);
 }
 
 /* Help Section */

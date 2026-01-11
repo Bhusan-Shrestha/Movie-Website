@@ -14,6 +14,7 @@ function MovieDetail() {
   const [rating, setRating] = useState(5);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const token = localStorage.getItem('authToken');
 
   // Convert slug back to search term
@@ -56,14 +57,15 @@ function MovieDetail() {
 
   const handleAddReview = async (e) => {
     e.preventDefault();
+    setSuccessMessage('');
     if (!token) {
-      alert('Please log in to add a review');
+      setError('Please log in to add a review');
       navigate('/login');
       return;
     }
 
     if (!movie?.id) {
-      alert('Movie not loaded');
+      setError('Movie not loaded');
       return;
     }
 
@@ -73,9 +75,10 @@ function MovieDetail() {
       setReviewText('');
       setRating(5);
       fetchMovieAndReviews();
-      alert('Review added successfully!');
+      setSuccessMessage('Review added successfully!');
+      setError('');
     } catch (err) {
-      alert('Failed to add review');
+      setError('Failed to add review');
     } finally {
       setSubmittingReview(false);
     }
@@ -85,16 +88,15 @@ function MovieDetail() {
     return <div className="loading">Loading...</div>;
   }
 
-  if (error) {
-    return <div className="error-message">{error}</div>;
-  }
-
   if (!movie) {
     return <div className="error-message">Movie not found</div>;
   }
 
   return (
     <div className="movie-detail-container">
+      {error && <div className="error-message">{error}</div>}
+      {successMessage && <div className="success-message">{successMessage}</div>}
+
       <button className="back-btn" onClick={() => navigate(-1)}>
         ← Back
       </button>
@@ -157,7 +159,7 @@ function MovieDetail() {
           
           {movie.metadata?.description && (
             <div className="description-section">
-              <h3>Description</h3>
+              <h3>Storyline</h3>
               <p>{movie.metadata.description}</p>
             </div>
           )}

@@ -82,6 +82,15 @@
   margin-bottom: 20px;
   border: 1px solid #f5c6cb;
 }
+
+.success-message {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  border: 1px solid #6ee7b7;
+}
 .genre-checkboxes {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

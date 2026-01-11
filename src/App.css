@@ -6,11 +6,12 @@
 
 :root {
   --color-bg: #ffffff;
-  --color-primary: #59e9c0;
-  --color-accent: #590c0e;
+  --color-primary: #667eea;
+  --color-accent: #764ba2;
   --color-success: #40db8d;
   --color-danger: #e64e4c;
   --color-muted: #f5f5f5;
+
 }
 
 body {
@@ -100,12 +101,14 @@ body {
 
 .nav-link-upload,
 .nav-link-admin,
+.nav-link-login,
 .nav-link-register {
   background: rgba(255, 255, 255, 0.08);
   border: 2px solid rgba(255, 255, 255, 0.25);
 }
 .nav-link-upload:hover,
 .nav-link-admin:hover,
+.nav-link-login:hover,
 .nav-link-register:hover {
   background: rgba(255, 255, 255, 0.16);
   border-color: rgba(255, 255, 255, 0.35);
@@ -138,8 +141,8 @@ body {
 }
 
 .user-info-badge.role-badge-admin {
-  border-color: rgba(255, 149, 0, 0.6);
-  background: rgba(255, 149, 0, 0.1);
+  border-color: rgba(239, 68, 68, 0.6);
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .user-info-badge.role-badge-moderator {
@@ -221,7 +224,7 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 400px;
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   border-radius: 10px;
   padding: 20px;
 }
@@ -243,7 +246,7 @@ body {
     top: 60px;
     right: 0;
     left: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
     flex-direction: column;
     gap: 10px;
     padding: 15px 20px;

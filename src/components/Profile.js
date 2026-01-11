@@ -19,6 +19,7 @@ function Profile() {
     password: ''
   });
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('success');
   const navigate = useNavigate();
 
   const token = localStorage.getItem('authToken');
@@ -97,14 +98,46 @@ function Profile() {
 
       if (response.ok) {
         setMessage('Profile updated successfully!');
+        setMessageType('success');
         setEditMode(false);
         loadUserData();
       } else {
         setMessage('Failed to update profile');
+        setMessageType('error');
       }
     } catch (error) {
       setMessage('Error updating profile');
+      setMessageType('error');
       console.error('Error:', error);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Are you sure? This will permanently delete your account.')) return;
+
+    setMessage('');
+    setMessageType('success');
+    try {
+      const response = await fetch('http://localhost:8080/api/user/profile', {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        setMessage('Account deleted. Logging you out...');
+        setMessageType('success');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        setTimeout(() => navigate('/login', { replace: true }), 1000);
+      } else {
+        const errorText = await response.text();
+        setMessage(errorText || 'Failed to delete account');
+        setMessageType('error');
+      }
+    } catch (error) {
+      setMessage('Error deleting account');
+      setMessageType('error');
+      console.error('Error deleting account:', error);
     }
   };
 
@@ -135,7 +168,7 @@ function Profile() {
 
       <div className="profile-content">
         {message && (
-          <div className="message success-message">{message}</div>
+          <div className={`message ${messageType === 'error' ? 'error-message' : 'success-message'}`}>{message}</div>
         )}
 
         {activeTab === 'profile' && (
@@ -143,9 +176,16 @@ function Profile() {
             <div className="profile-header">
               <h1>Profile Information</h1>
               {!editMode && (
-                <button className="btn-edit" onClick={() => setEditMode(true)}>
-                  ✏️ Edit Profile
-                </button>
+                <div className="profile-actions">
+                  <button className="btn-edit" onClick={() => setEditMode(true)}>
+                    ✏️ Edit Profile
+                  </button>
+                  {userProfile?.role !== 'ADMIN' && (
+                    <button className="btn-delete-account" onClick={handleDeleteAccount}>
+                      🗑️ Delete Account
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 
@@ -174,13 +214,9 @@ function Profile() {
             {(userProfile?.role === 'ADMIN' || userProfile?.role === 'MODERATOR') && (
               <div className="profile-field">
                 <label>ROLE:</label>
-                <div>
-                  {userProfile?.role ? (
-                    <span className="role-badge">{userProfile.role}</span>
-                  ) : (
-                    <p style={{ margin: 0 }}>-</p>
-                  )}
-                </div>
+                <span className={`role-text role-${userProfile?.role.toLowerCase()}`}>
+                  {userProfile?.role || '-'}
+                </span>
               </div>
             )}
             

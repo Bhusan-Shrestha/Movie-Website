@@ -117,6 +117,8 @@ export const movieAPI = {
   deleteMovie: (id) => api.delete(`/movies/${id}`),
 
   approveMovie: (id) => api.post(`/movies/approve/${id}`),
+
+  resubmitRejectedMovie: (id) => api.post(`/movies/${id}/resubmit`),
 };
 
 // Genre APIs
@@ -213,9 +215,11 @@ export const adminAPI = {
   updateUser: (id, userData) => {
     const formData = new FormData();
     if (userData.name) formData.append('name', userData.name);
+    if (userData.username) formData.append('username', userData.username);
     if (userData.email) formData.append('email', userData.email);
     if (userData.phone) formData.append('phone', userData.phone);
     if (userData.address) formData.append('address', userData.address);
+    if (userData.role) formData.append('role', userData.role);
     return api.put(`/admin/users/${id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
@@ -226,6 +230,8 @@ export const adminAPI = {
   getPendingRequests: () => api.get('/approvals/pending/requests'),
 
   approveMovie: (id) => api.post(`/approvals/movies/${id}/approve`),
+
+  rejectMovie: (id) => api.post(`/approvals/movies/${id}/reject`),
 
   approveRequest: (id) => api.post(`/approvals/requests/${id}/approve`),
 

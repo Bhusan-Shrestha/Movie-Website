@@ -87,6 +87,28 @@ function ModeratorDashboard() {
     }
   };
 
+  const handleResubmitMovie = async (movieId) => {
+    if (!window.confirm('Are you sure you want to resubmit this movie for approval?')) return;
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/movies/${movieId}/resubmit`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        setMessage('Movie resubmitted successfully! It will be reviewed by admin.');
+        loadModeratorData();
+      } else {
+        const errorData = await response.json();
+        setMessage(errorData.message || 'Failed to resubmit movie');
+      }
+    } catch (error) {
+      setMessage('Error resubmitting movie');
+      console.error('Error:', error);
+    }
+  };
+
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case 'APPROVED': return 'status-approved';
@@ -178,6 +200,12 @@ function ModeratorDashboard() {
         >
           ✅ Approved ({stats.approved})
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'rejected' ? 'active' : ''}`}
+          onClick={() => setActiveTab('rejected')}
+        >
+          ❌ Rejected ({stats.rejected})
+        </button>
         <button className="tab-btn btn-upload" onClick={() => navigate('/create')}>
           📤 Upload New Movie
         </button>
@@ -203,6 +231,7 @@ function ModeratorDashboard() {
                   const status = movie.statusInfo?.status || movie.status;
                   if (activeTab === 'pending') return status === 'PENDING';
                   if (activeTab === 'approved') return status === 'APPROVED';
+                  if (activeTab === 'rejected') return status === 'REJECTED';
                   return true;
                 })
                 .map((movie) => {
@@ -240,24 +269,60 @@ function ModeratorDashboard() {
                           <span>⏱️ {runtime ? `${formatRuntime(runtime)}` : 'N/A'}</span>
                         </div>
                         <div className="movie-actions">
-                          <button
-                            className="btn-edit"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/edit-movie/${movie.id}`);
-                            }}
-                          >
-                            ✏️ Edit
-                          </button>
-                          <button
-                            className="btn-delete"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteMovie(movie.id);
-                            }}
-                          >
-                            🗑️ Delete
-                          </button>
+                          {currentStatus === 'REJECTED' ? (
+                            <div className="rejected-actions-layout">
+                              <button
+                                className="btn-edit btn-full-width"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/edit-movie/${movie.id}`);
+                                }}
+                              >
+                                ✏️ Edit
+                              </button>
+                              <div className="rejected-bottom-actions">
+                                <button
+                                  className="btn-resubmit"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleResubmitMovie(movie.id);
+                                  }}
+                                >
+                                  🔄 Resubmit
+                                </button>
+                                <button
+                                  className="btn-delete"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteMovie(movie.id);
+                                  }}
+                                >
+                                  🗑️ Delete
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                className="btn-edit"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/edit-movie/${movie.id}`);
+                                }}
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                className="btn-delete"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteMovie(movie.id);
+                                }}
+                              >
+                                🗑️ Delete
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -272,9 +337,11 @@ function ModeratorDashboard() {
         <h3>💡 Tips for Content Creators</h3>
         <ul>
           <li>✅ Uploaded movies with PENDING status are awaiting admin approval</li>
+          <li>❌ If your movie is REJECTED, you can edit it and resubmit for approval</li>
           <li>📝 Make sure to include detailed descriptions and accurate information</li>
           <li>🎯 High-quality thumbnails improve viewer engagement</li>
           <li>⏱️ Approval typically takes 24-48 hours</li>
+          <li>🔄 Use the RESUBMIT button to apply rejected movies again after editing</li>
         </ul>
       </div>
     </div>

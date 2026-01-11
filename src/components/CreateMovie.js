@@ -26,6 +26,7 @@ function CreateMovie() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditMode);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchGenres();
@@ -115,6 +116,7 @@ function CreateMovie() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     if (!formData.title) {
       setError('Title is required');
@@ -158,14 +160,15 @@ function CreateMovie() {
 
       if (isEditMode) {
         await movieAPI.updateMovie(editId, dataToSubmit);
-        alert('Movie updated successfully!');
+        setSuccessMessage('Movie updated successfully!');
       } else {
         await movieAPI.createMovie(dataToSubmit);
-        alert('Movie created successfully! It will be pending approval.');
+        setSuccessMessage('Movie created successfully! It will be pending approval.');
       }
-      navigate('/');
+      setError('');
     } catch (err) {
       setError(err.response?.data?.message || (isEditMode ? 'Failed to update movie' : 'Failed to create movie'));
+      setSuccessMessage('');
     } finally {
       setLoading(false);
     }
@@ -180,6 +183,7 @@ function CreateMovie() {
       <button className="back-btn" onClick={() => navigate(-1)}>← Back</button>
       <h1>{isEditMode ? 'Edit Movie' : 'Create New Movie'}</h1>
       {error && <div className="error-message">{error}</div>}
+      {successMessage && <div className="success-message">{successMessage}</div>}
 
       <form onSubmit={handleSubmit} className="movie-form">
         <div className="form-group">
@@ -195,7 +199,7 @@ function CreateMovie() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="runtimeMinutes">Runtime (minutes)</label>
+          <label htmlFor="runtimeMinutes">Runtime (minutes) {!isEditMode && '*'}</label>
           <input
             id="runtimeMinutes"
             type="number"
@@ -212,7 +216,7 @@ function CreateMovie() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="description">Description</label>
+          <label htmlFor="description">Storyline {!isEditMode && '*'}</label>
           <textarea
             id="description"
             name="description"
@@ -223,7 +227,7 @@ function CreateMovie() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="language">Language</label>
+          <label htmlFor="language">Language {!isEditMode && '*'}</label>
           <select
             id="language"
             name="language"
@@ -247,7 +251,7 @@ function CreateMovie() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="casts">Casts</label>
+          <label htmlFor="casts">Casts {!isEditMode && '*'}</label>
           <input
             id="casts"
             type="text"
@@ -259,7 +263,7 @@ function CreateMovie() {
         </div>
 
         <div className="form-group">
-          <label>Genres</label>
+          <label>Genres {!isEditMode && '*'}</label>
           <div className="genre-checkboxes">
             {genres.length === 0 ? (
               <p>Loading genres...</p>
@@ -279,7 +283,7 @@ function CreateMovie() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="year">Year</label>
+          <label htmlFor="year">Year {!isEditMode && '*'}</label>
           <input
             id="year"
             type="number"
@@ -290,7 +294,7 @@ function CreateMovie() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="date">Release Date</label>
+          <label htmlFor="date">Release Date {!isEditMode && '*'}</label>
           <input
             id="date"
             type="date"

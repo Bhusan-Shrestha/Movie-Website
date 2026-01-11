@@ -176,7 +176,6 @@ function MovieList({ userRole, isAuthenticated }) {
 
           <div className="search-section">
             <form className="search-bar" onSubmit={handleSearch}>
-              <span className="search-icon">🔍</span>
               <input
                 type="text"
                 placeholder="Search movies by title..."
