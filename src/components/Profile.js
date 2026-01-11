@@ -11,6 +11,7 @@ function Profile() {
   const [editReviewText, setEditReviewText] = useState('');
   const [editRating, setEditRating] = useState(5);
   const [activeTab, setActiveTab] = useState('profile');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -112,9 +113,12 @@ function Profile() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!window.confirm('Are you sure? This will permanently delete your account.')) return;
+  const handleDeleteAccount = () => {
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDeleteAccount = async () => {
+    setShowDeleteConfirm(false);
     setMessage('');
     setMessageType('success');
     try {
@@ -147,6 +151,18 @@ function Profile() {
 
   return (
     <div className="profile-container">
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="confirmation-card">
+            <h3>⚠️ Delete Account</h3>
+            <p>Are you sure? This will permanently delete your account.</p>
+            <div className="confirmation-actions">
+              <button className="btn-confirm-danger" onClick={confirmDeleteAccount}>Yes, Delete</button>
+              <button className="btn-cancel" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
       <button className="back-btn" onClick={() => navigate(-1)}>
         ← Back
       </button>

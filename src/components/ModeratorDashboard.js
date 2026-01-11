@@ -14,6 +14,8 @@ function ModeratorDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [message, setMessage] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [movieToDelete, setMovieToDelete] = useState(null);
   const navigate = useNavigate();
 
   const token = localStorage.getItem('authToken');
@@ -66,24 +68,34 @@ function ModeratorDashboard() {
     }
   };
 
-  const handleDeleteMovie = async (movieId) => {
-    if (!window.confirm('Are you sure you want to delete this movie?')) return;
+  const handleDeleteMovie = (movieId) => {
+    setMovieToDelete(movieId);
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDeleteMovie = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/movies/${movieId}`, {
+      const response = await fetch(`http://localhost:8080/api/movies/${movieToDelete}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (response.ok) {
         setMessage('Movie deleted successfully!');
+        setShowDeleteConfirm(false);
+        setMovieToDelete(null);
         loadModeratorData();
       } else {
-        setMessage('Failed to delete movie');
+        const errorData = await response.json().catch(() => ({}));
+        setMessage(errorData.message || errorData.error || 'Failed to delete movie');
+        setShowDeleteConfirm(false);
+        setMovieToDelete(null);
       }
     } catch (error) {
       setMessage('Error deleting movie');
       console.error('Error:', error);
+      setShowDeleteConfirm(false);
+      setMovieToDelete(null);
     }
   };
 
@@ -139,6 +151,21 @@ function ModeratorDashboard() {
 
   return (
     <div className="moderator-dashboard">
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="confirmation-card">
+            <h3>⚠️ Delete Movie</h3>
+            <p>Are you sure you want to delete this movie?</p>
+            <div className="confirmation-actions">
+              <button className="btn-confirm-danger" onClick={confirmDeleteMovie}>Yes, Delete</button>
+              <button className="btn-cancel" onClick={() => {
+                setShowDeleteConfirm(false);
+                setMovieToDelete(null);
+              }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="dashboard-header">
         <h1>Moderator Dashboard</h1>
         <p>Manage your uploaded movies and track their status</p>

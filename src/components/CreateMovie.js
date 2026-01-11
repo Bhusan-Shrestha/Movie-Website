@@ -27,6 +27,7 @@ function CreateMovie() {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditMode);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showSuccessCard, setShowSuccessCard] = useState(false);
 
   useEffect(() => {
     fetchGenres();
@@ -166,6 +167,12 @@ function CreateMovie() {
         setSuccessMessage('Movie created successfully! It will be pending approval.');
       }
       setError('');
+      setShowSuccessCard(true);
+      
+      // Auto redirect after 3 seconds
+      setTimeout(() => {
+        navigate(-1);
+      }, 3000);
     } catch (err) {
       setError(err.response?.data?.message || (isEditMode ? 'Failed to update movie' : 'Failed to create movie'));
       setSuccessMessage('');
@@ -180,10 +187,20 @@ function CreateMovie() {
 
   return (
     <div className="create-movie-container">
+      {showSuccessCard && (
+        <div className="modal-overlay">
+          <div className="success-card">
+            <div className="success-icon">✅</div>
+            <h2>{isEditMode ? 'Movie Updated!' : 'Movie Created!'}</h2>
+            <p>{successMessage}</p>
+            <p className="redirect-text">Redirecting you back...</p>
+            <button className="btn-success" onClick={() => navigate(-1)}>Go Back Now</button>
+          </div>
+        </div>
+      )}
       <button className="back-btn" onClick={() => navigate(-1)}>← Back</button>
       <h1>{isEditMode ? 'Edit Movie' : 'Create New Movie'}</h1>
       {error && <div className="error-message">{error}</div>}
-      {successMessage && <div className="success-message">{successMessage}</div>}
 
       <form onSubmit={handleSubmit} className="movie-form">
         <div className="form-group">

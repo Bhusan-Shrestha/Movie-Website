@@ -39,6 +39,7 @@ function AppContent() {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -76,9 +77,9 @@ function AppContent() {
     };
   }, []);
 
-  // Prevent back navigation from protected routes (except profile where back button should work)
+  // Prevent back navigation from protected routes (except profile and create where back button should work)
   useEffect(() => {
-    const routesToProtect = ['/admin', '/moderator', '/create', '/edit-movie'];
+    const routesToProtect = ['/admin', '/moderator'];
     const isProtectedRoute = routesToProtect.some(route => location.pathname.startsWith(route));
     
     if (isProtectedRoute && isLoggedIn) {
@@ -100,14 +101,17 @@ function AppContent() {
   }, [location.pathname, isLoggedIn]);
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      setIsLoggedIn(false);
-      setUser(null);
-      setMobileMenuOpen(false);
-      navigate('/login', { replace: true });
-    }
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    setIsLoggedIn(false);
+    setUser(null);
+    setMobileMenuOpen(false);
+    setShowLogoutConfirm(false);
+    navigate('/login', { replace: true });
   };
 
   const getRoleIcon = (role) => {
@@ -138,6 +142,18 @@ function AppContent() {
 
   return (
     <div className="App">
+      {showLogoutConfirm && (
+        <div className="modal-overlay">
+          <div className="confirmation-card">
+            <h3>Confirm Logout</h3>
+            <p>Are you sure you want to logout?</p>
+            <div className="confirmation-actions">
+              <button className="btn-confirm" onClick={confirmLogout}>Yes, Logout</button>
+              <button className="btn-cancel" onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
       <header className="navbar">
         <div className="navbar-content">
           <Link to="/" className="navbar-brand">
