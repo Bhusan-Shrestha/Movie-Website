@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { movieAPI, reviewAPI } from '../services/api';
 import './MovieDetail.css';
 
 function MovieDetail() {
   const { slug } = useParams();
+  const location = useLocation();
+  const id = location.state?.id;
   const navigate = useNavigate();
   const [movie, setMovie] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -17,37 +19,48 @@ function MovieDetail() {
   const [successMessage, setSuccessMessage] = useState('');
   const token = localStorage.getItem('authToken');
 
-  // Convert slug back to search term
+  // Convert slug back to search term (fallback only)
   const titleFromSlug = slug.replace(/-/g, ' ');
 
   useEffect(() => {
     fetchMovieAndReviews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [slug, id]);
 
   const fetchMovieAndReviews = async () => {
     setLoading(true);
     setError('');
     try {
-      // Search for movie by title
-      const searchRes = await movieAPI.searchMovies(titleFromSlug, 0, 10);
-      const movies = searchRes.data.content || searchRes.data;
-      
-      // Find exact match (case-insensitive)
-      const foundMovie = movies.find(m => 
-        (m.metadata?.title || m.title || '').toLowerCase() === titleFromSlug.toLowerCase()
-      );
-      
+      let foundMovie = null;
+
+      // Prefer fetching by id for reliability
+      if (id) {
+        const res = await movieAPI.getMovieById(id);
+        // Handle ApiResponse wrapper { status, message, data }
+        const data = res.data?.data ?? res.data;
+        foundMovie = data;
+      }
+
+      // Fallback: try searching by title from slug (approved movies only)
+      if (!foundMovie && titleFromSlug) {
+        const searchRes = await movieAPI.searchMovies(titleFromSlug, 0, 10);
+        const movies = (searchRes.data?.data?.content) || (searchRes.data?.content) || searchRes.data || [];
+        foundMovie = Array.isArray(movies)
+          ? movies.find(m => (m.metadata?.title || m.title || '').toLowerCase() === titleFromSlug.toLowerCase())
+          : null;
+      }
+
       if (!foundMovie) {
         setError('Movie not found');
         setLoading(false);
         return;
       }
-      
+
       setMovie(foundMovie);
 
       const reviewsRes = await reviewAPI.getReviewsByMovie(foundMovie.id);
-      setReviews(reviewsRes.data);
+      const reviewsData = reviewsRes.data?.data ?? reviewsRes.data;
+      setReviews(reviewsData || []);
     } catch (err) {
       setError('Failed to fetch movie details');
     } finally {

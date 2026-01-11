@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { movieAPI } from '../services/api';
 import './MovieList.css';
 
@@ -115,7 +116,7 @@ function MovieList({ userRole, isAuthenticated }) {
     };
 
     return (
-      <a href={`/movie/${movieSlug}`} className="movie-card-link">
+      <Link to={`/movie/${movieSlug}`} state={{ id: movie.id }} className="movie-card-link">
         <div className="movie-card">
           <div className="movie-card-image">
             {thumbnailUrl ? (
@@ -137,7 +138,7 @@ function MovieList({ userRole, isAuthenticated }) {
             </p>
           </div>
         </div>
-      </a>
+      </Link>
     );
   };
 
