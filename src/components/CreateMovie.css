@@ -53,7 +53,6 @@
 }
 
 .movie-form button {
-  width: 100%;
   padding: 12px;
   background: var(--color-primary);
   color: white;
@@ -91,6 +90,138 @@
   margin-bottom: 20px;
   border: 1px solid #6ee7b7;
 }
+
+/* Genre Selection */
+.genre-select-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.genre-select {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.genre-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.btn-add-genre {
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.btn-add-genre:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.add-genre-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.add-genre-form input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.add-genre-form button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: auto;
+}
+
+.add-genre-form button:first-of-type {
+  background: var(--color-primary);
+  color: white;
+}
+
+.add-genre-form button:first-of-type:hover {
+  background: var(--color-accent);
+}
+
+.add-genre-form button:last-of-type {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.add-genre-form button:last-of-type:hover {
+  background: #d1d5db;
+}
+
+.selected-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.genre-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  color: white;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.remove-genre {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.remove-genre:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
 .genre-checkboxes {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

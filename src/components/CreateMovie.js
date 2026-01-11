@@ -12,6 +12,8 @@ function CreateMovie() {
 
   const [genres, setGenres] = useState([]);
   const [selectedGenres, setSelectedGenres] = useState([]);
+  const [newGenreName, setNewGenreName] = useState('');
+  const [showAddGenre, setShowAddGenre] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -98,12 +100,56 @@ function CreateMovie() {
     }
   };
 
-  const handleGenreChange = (genreId) => {
-    setSelectedGenres(prev => 
-      prev.includes(genreId) 
-        ? prev.filter(id => id !== genreId)
-        : [...prev, genreId]
-    );
+  const handleGenreSelect = (e) => {
+    const genreId = parseInt(e.target.value);
+    if (genreId && !selectedGenres.includes(genreId)) {
+      setSelectedGenres(prev => [...prev, genreId]);
+    }
+    e.target.value = ''; // Reset select
+  };
+
+  const handleRemoveGenre = (genreId) => {
+    setSelectedGenres(prev => prev.filter(id => id !== genreId));
+  };
+
+  const handleAddNewGenre = async () => {
+    if (!newGenreName.trim()) {
+      setError('Genre name is required');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('authToken');
+      const formData = new FormData();
+      formData.append('name', newGenreName.trim());
+      formData.append('description', newGenreName.trim());
+
+      const response = await fetch('http://localhost:8080/api/genres', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        let newGenre = await response.json();
+        if (newGenre.data) {
+          newGenre = newGenre.data;
+        }
+        setGenres(prev => [...prev, newGenre]);
+        setSelectedGenres(prev => [...prev, newGenre.id]);
+        setNewGenreName('');
+        setShowAddGenre(false);
+        setError('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to add genre');
+      }
+    } catch (error) {
+      console.error('Error adding genre:', error);
+      setError('Failed to add genre');
+    }
   };
 
   const handleChange = (e) => {
@@ -289,22 +335,65 @@ function CreateMovie() {
 
         <div className="form-group">
           <label>Genres {!isEditMode && '*'}</label>
-          <div className="genre-checkboxes">
-            {genres.length === 0 ? (
-              <p>Loading genres...</p>
-            ) : (
-              genres.map((genre) => (
-                <label key={genre.id} className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={selectedGenres.includes(genre.id)}
-                    onChange={() => handleGenreChange(genre.id)}
-                  />
-                  <span>{genre.name}</span>
-                </label>
-              ))
-            )}
+          <div className="genre-select-wrapper">
+            <select 
+              className="genre-select" 
+              onChange={handleGenreSelect}
+              defaultValue=""
+            >
+              <option value="" disabled>Select a genre...</option>
+              {genres.map((genre) => (
+                <option 
+                  key={genre.id} 
+                  value={genre.id}
+                  disabled={selectedGenres.includes(genre.id)}
+                >
+                  {genre.name}
+                </option>
+              ))}
+            </select>
+            <button 
+              type="button" 
+              className="btn-add-genre" 
+              onClick={() => setShowAddGenre(!showAddGenre)}
+            >
+              + Add New Genre
+            </button>
           </div>
+
+          {showAddGenre && (
+            <div className="add-genre-form">
+              <input
+                type="text"
+                placeholder="Enter new genre name"
+                value={newGenreName}
+                onChange={(e) => setNewGenreName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddNewGenre())}
+              />
+              <button type="button" onClick={handleAddNewGenre}>Add</button>
+              <button type="button" onClick={() => {setShowAddGenre(false); setNewGenreName('');}}>Cancel</button>
+            </div>
+          )}
+
+          {selectedGenres.length > 0 && (
+            <div className="selected-genres">
+              {selectedGenres.map((genreId) => {
+                const genre = genres.find(g => g.id === genreId);
+                return genre ? (
+                  <span key={genreId} className="genre-tag">
+                    {genre.name}
+                    <button 
+                      type="button" 
+                      onClick={() => handleRemoveGenre(genreId)}
+                      className="remove-genre"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ) : null;
+              })}
+            </div>
+          )}
         </div>
 
         <div className="form-group">
