@@ -36,7 +36,11 @@ function Profile() {
 
       const profileRes = await fetch('http://localhost:8080/api/user/profile', { headers });
       if (profileRes.ok) {
-        const profile = await profileRes.json();
+        let profile = await profileRes.json();
+        // Handle new response format: { status, message, data: {...} }
+        if (profile.data) {
+          profile = profile.data;
+        }
         // Backend returns nested structure: { id, metadata: { name, username, email, phone, address, role }, auditInfo }
         const mappedProfile = {
           id: profile.id,
@@ -60,7 +64,11 @@ function Profile() {
         if (profile.id) {
           const reviewsRes = await fetch(`http://localhost:8080/api/reviews/user/${mappedProfile.id || profile.id}`, { headers });
           if (reviewsRes.ok) {
-            const reviews = await reviewsRes.json();
+            let reviews = await reviewsRes.json();
+            // Handle new response format: { status, message, data: [...] }
+            if (reviews.data) {
+              reviews = reviews.data;
+            }
             setUserReviews(Array.isArray(reviews) ? reviews : []);
           }
         }

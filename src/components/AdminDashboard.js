@@ -79,7 +79,9 @@ function AdminDashboard() {
       const allMoviesRes = await fetch('http://localhost:8080/api/admin/movies/all?page=0&size=500', { headers });
       if (allMoviesRes.ok) {
         const allMoviesPage = await allMoviesRes.json();
-        const allMoviesList = Array.isArray(allMoviesPage) ? allMoviesPage : (allMoviesPage.content || []);
+        // Handle new response format: { status, message, data: { content: [...] } }
+        const allMoviesList = allMoviesPage.data && allMoviesPage.data.content ? allMoviesPage.data.content :
+                              (Array.isArray(allMoviesPage) ? allMoviesPage : (allMoviesPage.content || []));
         setAllMovies(allMoviesList);
         
         // Count by status

@@ -43,7 +43,9 @@ function ModeratorDashboard() {
       const myRes = await fetch('http://localhost:8080/api/movies/my?page=0&size=500&sortBy=createdAt&direction=DESC', { headers });
       if (myRes.ok) {
         const myPage = await myRes.json();
-        const mine = Array.isArray(myPage) ? myPage : (myPage.content || []);
+        // Handle new response format: { status, message, data: { content: [...] } }
+        const mine = myPage.data && myPage.data.content ? myPage.data.content : 
+                     (Array.isArray(myPage) ? myPage : (myPage.content || []));
         setMyMovies(mine);
 
         const approved = mine.filter(m => (m.statusInfo?.status || m.status) === 'APPROVED').length;
@@ -57,7 +59,9 @@ function ModeratorDashboard() {
       const allRes = await fetch('http://localhost:8080/api/movies/all?page=0&size=500&sortBy=createdAt&direction=DESC', { headers });
       if (allRes.ok) {
         const allPage = await allRes.json();
-        const allList = Array.isArray(allPage) ? allPage : (allPage.content || []);
+        // Handle new response format: { status, message, data: { content: [...] } }
+        const allList = allPage.data && allPage.data.content ? allPage.data.content :
+                        (Array.isArray(allPage) ? allPage : (allPage.content || []));
         setAllMovies(allList);
       }
     } catch (error) {

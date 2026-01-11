@@ -43,7 +43,11 @@ function CreateMovie() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
-        const movieData = await response.json();
+        let movieData = await response.json();
+        // Handle new response format: { status, message, data: {...} }
+        if (movieData.data) {
+          movieData = movieData.data;
+        }
         // Handle nested DTO structure
         const meta = movieData.metadata || movieData;
         const media = movieData.media || {};
@@ -82,7 +86,11 @@ function CreateMovie() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
-        const data = await response.json();
+        let data = await response.json();
+        // Handle new response format: { status, message, data: [...] }
+        if (data.data) {
+          data = data.data;
+        }
         setGenres(Array.isArray(data) ? data : []);
       }
     } catch (error) {

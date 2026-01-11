@@ -33,10 +33,20 @@ function MovieList({ userRole, isAuthenticated }) {
       } else {
         response = await movieAPI.getAllMovies(page, 10, sortBy, direction);
       }
-      setMovies(response.data.content || response.data);
+      // Handle new API response format: { status, message, data: { content: [...], totalElements, totalPages } }
+      if (response.data && response.data.data && response.data.data.content) {
+        setMovies(response.data.data.content);
+      } else if (response.data && response.data.content) {
+        setMovies(response.data.content);
+      } else if (Array.isArray(response.data)) {
+        setMovies(response.data);
+      } else {
+        setMovies([]);
+      }
     } catch (err) {
       setError('Failed to fetch movies');
       console.error('Error fetching movies:', err);
+      setMovies([]);
     } finally {
       setLoading(false);
     }
@@ -45,9 +55,17 @@ function MovieList({ userRole, isAuthenticated }) {
   const fetchTopRated = async () => {
     try {
       const response = await movieAPI.getTopRatedMovies();
-      const data = response.data;
-      // Handle paginated response
-      setTopRated(Array.isArray(data) ? data : (data.content || []));
+      // Handle new API response format: { status, message, data: { content: [...] } }
+      let data = response.data;
+      if (data && data.data && data.data.content) {
+        setTopRated(data.data.content);
+      } else if (data && data.content) {
+        setTopRated(data.content);
+      } else if (Array.isArray(data)) {
+        setTopRated(data);
+      } else {
+        setTopRated([]);
+      }
     } catch (err) {
       console.error('Error fetching top rated:', err);
       setTopRated([]);
