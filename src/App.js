@@ -10,6 +10,7 @@ import CreateMovie from './components/CreateMovie';
 import AdminDashboard from './components/AdminDashboard';
 import ModeratorDashboard from './components/ModeratorDashboard';
 import Profile from './components/Profile';
+import Logo from './assets/Logo.png';
 import './App.css';
 
 function PrivateRoute({ children }) {
@@ -159,7 +160,7 @@ function AppContent() {
       <header className="navbar">
         <div className="navbar-content">
           <Link to="/" className="navbar-brand">
-            Movies
+            <img src={Logo} alt="Movie Logo" className='logo'/>MOVIES
           </Link>
           
           <button 
