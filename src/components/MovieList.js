@@ -30,9 +30,9 @@ function MovieList({ userRole, isAuthenticated }) {
     try {
       let response;
       if (searchTerm.trim()) {
-        response = await movieAPI.searchMovies(searchTerm, page, 10);
+        response = await movieAPI.searchMovies(searchTerm, page, 12);
       } else {
-        response = await movieAPI.getAllMovies(page, 10, sortBy, direction);
+        response = await movieAPI.getAllMovies(page, 12, sortBy, direction);
       }
       // Handle new API response format: { status, message, data: { content: [...], totalElements, totalPages } }
       if (response.data && response.data.data && response.data.data.content) {
@@ -134,7 +134,7 @@ function MovieList({ userRole, isAuthenticated }) {
               ) : null}
             </p>
             <p className="description">
-              {(movie.metadata?.description || movie.description)?.substring(0, 150)}...
+              {(movie.metadata?.description || movie.description)?.substring(0, 100)}...
             </p>
           </div>
         </div>

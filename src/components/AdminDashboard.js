@@ -27,6 +27,9 @@ function AdminDashboard() {
     address: '',
     role: ''
   });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [movieToDelete, setMovieToDelete] = useState(null);
+  const [movieTitle, setMovieTitle] = useState('');
 
   const token = localStorage.getItem('authToken');
 
@@ -139,27 +142,41 @@ function AdminDashboard() {
     }
   };
 
-  const deleteMovie = async (movieId) => {
-    if (!window.confirm('Are you sure you want to delete this movie? This action cannot be undone.')) {
-      return;
-    }
+  const handleDeleteMovie = (movieId, title) => {
+    setMovieToDelete(movieId);
+    setMovieTitle(title);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteMovie = async () => {
     try {
-      const res = await fetch(`http://localhost:8080/api/movies/${movieId}`, {
+      const res = await fetch(`http://localhost:8080/api/movies/${movieToDelete}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
       if (res.ok) {
         setMessage('✓ Movie deleted successfully!');
+        setShowDeleteConfirm(false);
+        setMovieToDelete(null);
+        setMovieTitle('');
         loadDashboardData();
         setTimeout(() => setMessage(''), 3000);
       } else {
         setMessage('Failed to delete movie');
+        setShowDeleteConfirm(false);
       }
     } catch (error) {
       setMessage('Failed to delete movie');
       console.error('Error deleting movie:', error);
+      setShowDeleteConfirm(false);
     }
+  };
+
+  const cancelDeleteMovie = () => {
+    setShowDeleteConfirm(false);
+    setMovieToDelete(null);
+    setMovieTitle('');
   };
 
   const openEditUserModal = (user) => {
@@ -367,7 +384,7 @@ function AdminDashboard() {
                             className="btn-delete-compact"
                             onClick={(e) => { 
                               e.stopPropagation();
-                              deleteMovie(movie.id);
+                              handleDeleteMovie(movie.id, title);
                             }}
                           >
                             🗑️ Delete
@@ -614,6 +631,32 @@ function AdminDashboard() {
           </div>
         )}
 
+        {/* Delete Confirmation Dialog */}
+        {showDeleteConfirm && (
+          <div className="modal-overlay">
+            <div className="modal-content confirmation-card">
+              <h3>Delete Movie</h3>
+              <p>Are you sure you want to delete <strong>"{movieTitle}"</strong>?</p>
+              <p style={{ color: '#dc2626', fontSize: '14px', marginTop: '10px' }}>
+                ⚠️ This action cannot be undone.
+              </p>
+              <div className="confirmation-actions">
+                <button 
+                  className="btn-confirm-danger" 
+                  onClick={confirmDeleteMovie}
+                >
+                  🗑️ Yes, Delete
+                </button>
+                <button 
+                  className="btn-confirm" 
+                  onClick={cancelDeleteMovie}
+                >
+                  ✕ Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

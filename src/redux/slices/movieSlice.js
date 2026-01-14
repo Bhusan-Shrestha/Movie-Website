@@ -6,7 +6,7 @@ const initialState = {
   loading: false,
   error: null,
   currentPage: 0,
-  pageSize: 10,
+  pageSize: 12,
   totalElements: 0,
 };
 
